@@ -1,0 +1,658 @@
+{
+  "info": {
+    "_postman_id": "3fbc6f98-4335-4d34-9d9e-dba30c6c5840",
+    "name": "Insightlabs CRM API",
+    "description": "Coleccion Postman para la API v1 de Insightlabs CRM. Define variables a nivel de coleccion para baseUrl, tenantId, accessToken, refreshToken y los ids usados por los endpoints de negocio.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000/api/v1" },
+    { "key": "tenantId", "value": "tenant-demo" },
+    { "key": "accessToken", "value": "" },
+    { "key": "refreshToken", "value": "" },
+    { "key": "companyId", "value": "" },
+    { "key": "leadId", "value": "" },
+    { "key": "pipelineId", "value": "" },
+    { "key": "stageId", "value": "" },
+    { "key": "taskId", "value": "" },
+    { "key": "appointmentId", "value": "" },
+    { "key": "conversationId", "value": "" },
+    { "key": "advisorUserId", "value": "" },
+    { "key": "automationId", "value": "" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{accessToken}}", "type": "string" }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (pm.request && pm.request.url && pm.request.url.toString().includes('/auth/')) {",
+          "  return;",
+          "}",
+          "pm.request.headers.upsert({ key: 'X-Tenant-ID', value: pm.collectionVariables.get('tenantId') || '' });"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Live",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health/live"
+          }
+        },
+        {
+          "name": "Ready",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health/ready"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Companies",
+      "item": [
+        {
+          "name": "List Companies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/companies"
+          }
+        },
+        {
+          "name": "Create Company",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Insightlabs Demo\",\n  \"slug\": \"insightlabs-demo\",\n  \"timezone\": \"America/Bogota\",\n  \"industry\": \"crm\"\n}"
+            },
+            "url": "{{baseUrl}}/companies"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.access_token) pm.collectionVariables.set('accessToken', json.access_token);",
+                  "if (json.refresh_token) pm.collectionVariables.set('refreshToken', json.refresh_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"owner@demo.com\",\n  \"password\": \"admin123\",\n  \"tenant_id\": \"{{tenantId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        },
+        {
+          "name": "Refresh",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refreshToken}}\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/refresh"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refreshToken}}\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/logout"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Audit",
+      "item": [
+        {
+          "name": "List Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/audit/logs?limit=50&entity=lead&action=create",
+              "host": ["{{baseUrl}}"],
+              "path": ["audit", "logs"],
+              "query": [
+                { "key": "limit", "value": "50" },
+                { "key": "entity", "value": "lead" },
+                { "key": "action", "value": "create" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Leads",
+      "item": [
+        {
+          "name": "List Leads",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/leads"
+          }
+        },
+        {
+          "name": "Create Lead",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sofia Ramirez\",\n  \"phone\": \"+573001112233\",\n  \"email\": \"sofia@example.com\",\n  \"source_channel\": \"whatsapp\"\n}"
+            },
+            "url": "{{baseUrl}}/leads"
+          }
+        },
+        {
+          "name": "Move Lead Stage",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to_stage_id\": \"{{stageId}}\",\n  \"reason\": \"Qualified after discovery call\"\n}"
+            },
+            "url": "{{baseUrl}}/leads/{{leadId}}/move-stage"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pipelines",
+      "item": [
+        {
+          "name": "List Pipelines",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/pipelines"
+          }
+        },
+        {
+          "name": "Create Pipeline",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ventas B2C\",\n  \"is_default\": true\n}"
+            },
+            "url": "{{baseUrl}}/pipelines"
+          }
+        },
+        {
+          "name": "List Stages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/pipelines/{{pipelineId}}/stages"
+          }
+        },
+        {
+          "name": "Create Stage",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Qualified\",\n  \"position\": 2,\n  \"probability\": 50,\n  \"sla_hours\": 24\n}"
+            },
+            "url": "{{baseUrl}}/pipelines/{{pipelineId}}/stages"
+          }
+        },
+        {
+          "name": "Get Kanban",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/pipelines/{{pipelineId}}/kanban"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "item": [
+        {
+          "name": "List Tasks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/tasks"
+          }
+        },
+        {
+          "name": "Create Task",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lead_id\": \"{{leadId}}\",\n  \"assigned_user_id\": \"{{advisorUserId}}\",\n  \"type\": \"follow_up\",\n  \"due_at\": \"2026-03-09T15:00:00Z\",\n  \"priority\": \"high\"\n}"
+            },
+            "url": "{{baseUrl}}/tasks"
+          }
+        },
+        {
+          "name": "Update Task Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"done\"\n}"
+            },
+            "url": "{{baseUrl}}/tasks/{{taskId}}/status"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Appointments",
+      "item": [
+        {
+          "name": "List Appointments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/appointments"
+          }
+        },
+        {
+          "name": "Create Appointment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lead_id\": \"{{leadId}}\",\n  \"owner_user_id\": \"{{advisorUserId}}\",\n  \"starts_at\": \"2026-03-10T14:00:00Z\",\n  \"ends_at\": \"2026-03-10T14:30:00Z\",\n  \"location\": \"Google Meet\",\n  \"notes\": \"Discovery call\"\n}"
+            },
+            "url": "{{baseUrl}}/appointments"
+          }
+        },
+        {
+          "name": "Update Appointment Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"confirmed\"\n}"
+            },
+            "url": "{{baseUrl}}/appointments/{{appointmentId}}/status"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Messaging",
+      "item": [
+        {
+          "name": "List Conversations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/messaging/conversations?channel=whatsapp&status=open&advisor_user_id={{advisorUserId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["messaging", "conversations"],
+              "query": [
+                { "key": "channel", "value": "whatsapp" },
+                { "key": "status", "value": "open" },
+                { "key": "advisor_user_id", "value": "{{advisorUserId}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Conversation Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/messaging/conversations/{{conversationId}}"
+          }
+        },
+        {
+          "name": "Send WhatsApp Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"conversation_id\": \"{{conversationId}}\",\n  \"content\": \"Hola, te escribo para confirmar la propuesta.\"\n}"
+            },
+            "url": "{{baseUrl}}/messaging/whatsapp/send"
+          }
+        },
+        {
+          "name": "Send Instagram Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"conversation_id\": \"{{conversationId}}\",\n  \"content\": \"Te comparto mas detalles por este hilo.\"\n}"
+            },
+            "url": "{{baseUrl}}/messaging/instagram/send"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Billing",
+      "item": [
+        {
+          "name": "List Plans",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/billing/plans"
+          }
+        },
+        {
+          "name": "Create Checkout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan_code\": \"pro-monthly\"\n}"
+            },
+            "url": "{{baseUrl}}/billing/checkout"
+          }
+        },
+        {
+          "name": "Get Subscription Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/billing/subscription/status"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Operations",
+      "item": [
+        {
+          "name": "Get Operations Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/operations/status"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Sales By Advisor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/reports/sales-by-advisor"
+          }
+        },
+        {
+          "name": "Conversion By Stage",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/reports/conversion-by-stage"
+          }
+        },
+        {
+          "name": "Average Close Time",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/reports/average-close-time"
+          }
+        },
+        {
+          "name": "Lead Sources",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/reports/lead-sources"
+          }
+        },
+        {
+          "name": "Loss Reasons",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/reports/loss-reasons"
+          }
+        },
+        {
+          "name": "Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/reports/summary"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Automations",
+      "item": [
+        {
+          "name": "List Automations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/automations"
+          }
+        },
+        {
+          "name": "Create Automation",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Qualified Follow Up\",\n  \"trigger_type\": \"lead.stage_changed\",\n  \"conditions\": [\n    {\n      \"field\": \"current_stage_id\",\n      \"op\": \"eq\",\n      \"value\": \"{{stageId}}\"\n    }\n  ],\n  \"actions\": [\n    {\n      \"type\": \"create_task\",\n      \"task_type\": \"follow_up\",\n      \"priority\": \"high\",\n      \"delay_hours\": 2\n    },\n    {\n      \"type\": \"score\",\n      \"points\": 20,\n      \"reason\": \"Reached qualified\"\n    }\n  ],\n  \"is_active\": true\n}"
+            },
+            "url": "{{baseUrl}}/automations"
+          }
+        },
+        {
+          "name": "Update Automation",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Qualified Follow Up v2\",\n  \"is_active\": true,\n  \"conditions\": [\n    {\n      \"field\": \"current_stage_id\",\n      \"op\": \"eq\",\n      \"value\": \"{{stageId}}\"\n    }\n  ],\n  \"actions\": [\n    {\n      \"type\": \"tag\",\n      \"name\": \"qualified\",\n      \"color\": \"#0f766e\"\n    }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/automations/{{automationId}}"
+          }
+        },
+        {
+          "name": "List Automation Runs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/automations/runs?automation_id={{automationId}}&entity_id={{leadId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["automations", "runs"],
+              "query": [
+                { "key": "automation_id", "value": "{{automationId}}" },
+                { "key": "entity_id", "value": "{{leadId}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Lead Scores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/automations/lead-scores/{{leadId}}"
+          }
+        },
+        {
+          "name": "List Lead Tags",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/automations/lead-tags/{{leadId}}"
+          }
+        },
+        {
+          "name": "List Tag Suggestions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/automations/tag-suggestions"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Webhooks",
+      "auth": {
+        "type": "noauth"
+      },
+      "item": [
+        {
+          "name": "Meta Challenge",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/webhooks/meta?hub.mode=subscribe&hub.verify_token=CHANGE_ME&hub.challenge=123456",
+              "host": ["{{baseUrl}}"],
+              "path": ["webhooks", "meta"],
+              "query": [
+                { "key": "hub.mode", "value": "subscribe" },
+                { "key": "hub.verify_token", "value": "CHANGE_ME" },
+                { "key": "hub.challenge", "value": "123456" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Meta Webhook",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Hub-Signature-256", "value": "sha256=CHANGE_ME" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"entry\": [\n    {\n      \"changes\": [\n        {\n          \"value\": {\n            \"messaging_product\": \"whatsapp\",\n            \"contacts\": [\n              {\n                \"profile\": {\n                  \"name\": \"Sofia Ramirez\"\n                }\n              }\n            ],\n            \"messages\": [\n              {\n                \"from\": \"+573001112233\",\n                \"id\": \"wamid.HBgMNTczMDAxMTEyMjMzFQIAEhggRkE0\",\n                \"text\": {\n                  \"body\": \"Hola\"\n                }\n              }\n            ]\n          }\n        }\n      ]\n    }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/webhooks/meta"
+          }
+        },
+        {
+          "name": "Wompi Webhook",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Wompi-Signature", "value": "CHANGE_ME" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": \"transaction.updated\",\n  \"data\": {\n    \"transaction\": {\n      \"id\": \"txn_demo_123\",\n      \"status\": \"APPROVED\"\n    }\n  }\n}"
+            },
+            "url": "{{baseUrl}}/webhooks/wompi"
+          }
+        }
+      ]
+    }
+  ]
+}

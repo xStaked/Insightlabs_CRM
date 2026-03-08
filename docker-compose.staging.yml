@@ -1,0 +1,18 @@
+services:
+  api:
+    restart: always
+
+  worker:
+    restart: always
+
+  scheduler:
+    restart: always
+
+  postgres:
+    restart: always
+
+  redis:
+    restart: always
+
+  frontend:
+    restart: always

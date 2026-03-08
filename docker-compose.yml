@@ -1,0 +1,83 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: insightlabs_frontend
+    env_file: .env
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: insightlabs_api
+    env_file: .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: insightlabs_worker
+    env_file: .env
+    command: celery -A app.tasks.worker.celery_app worker -l info
+    depends_on:
+      - api
+      - redis
+      - postgres
+
+  scheduler:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: insightlabs_scheduler
+    env_file: .env
+    command: celery -A app.tasks.worker.celery_app beat -l info
+    depends_on:
+      - worker
+
+  migrations:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: insightlabs_migrations
+    env_file: .env
+    command: alembic upgrade head
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:16
+    container_name: insightlabs_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: insightlabs
+      POSTGRES_USER: insightlabs
+      POSTGRES_PASSWORD: insightlabs
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: insightlabs_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
