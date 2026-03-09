@@ -9,7 +9,9 @@ export function StatCard({
 }) {
   return (
     <section className="stat-card">
-      <div className="stat-card__label">{label}</div>
+      <div className="stat-card__topline">
+        <div className="stat-card__label">{label}</div>
+      </div>
       <div className="stat-card__value">{value}</div>
       <div className="stat-card__hint">{hint}</div>
     </section>

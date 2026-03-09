@@ -3,7 +3,6 @@
 import { FormEvent, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Field } from "@/components/ui/primitives";
 import type { Automation, AutomationAction, AutomationCondition } from "@/types/api";
 
@@ -78,19 +77,31 @@ export function AutomationForm({
     await onSubmit(draft);
   }
 
+  const title = automation ? "Edit automation" : "Create automation";
+  const subtitle = automation
+    ? "Refine the trigger, entry conditions, and downstream actions for this rule."
+    : "Start with a trigger, then define the conditions and actions that should run automatically.";
+
   return (
-    <Card
-      title={automation ? "Edit automation" : "Create automation"}
-      subtitle="Simple builder for trigger, conditions and actions."
-      actions={
-        onCancel ? (
-          <Button variant="ghost" size="small" onClick={onCancel}>
-            Cancel
-          </Button>
-        ) : null
-      }
-    >
-      <form className="inline-stack" onSubmit={handleSubmit}>
+      <form className="inline-stack automation-form" onSubmit={handleSubmit}>
+        <div className="automation-form__intro">
+          <div>
+            <p className="automation-console__kicker">Builder workspace</p>
+            <h3 className="panel-title">{title}</h3>
+            <p className="panel-subtitle">{subtitle}</p>
+          </div>
+          {onCancel ? (
+            <Button type="button" variant="ghost" size="small" onClick={onCancel}>
+              Cancel
+            </Button>
+          ) : null}
+        </div>
+
+        <div className="automation-form__section">
+          <div className="automation-form__section-heading">
+            <strong>Rule setup</strong>
+            <span className="muted-text">Name the rule and define when it becomes eligible to run.</span>
+          </div>
         <Field label="Automation name">
           <input
             value={draft.name}
@@ -124,11 +135,16 @@ export function AutomationForm({
             </select>
           </Field>
         </div>
+        </div>
 
         <div className="automation-builder">
           <div className="topbar-row">
-            <strong>Conditions</strong>
+            <div className="inline-stack">
+              <strong>Conditions</strong>
+              <span className="muted-text">All conditions must match before the rule proceeds.</span>
+            </div>
             <Button
+              type="button"
               variant="secondary"
               size="small"
               onClick={() =>
@@ -144,53 +160,60 @@ export function AutomationForm({
           <div className="automation-builder__stack">
             {draft.conditions.map((condition, index) => (
               <div className="automation-row" key={`${condition.field}-${index}`}>
-                <select
-                  value={condition.field}
-                  onChange={(event) =>
-                    setDraft((current) => ({
-                      ...current,
-                      conditions: current.conditions.map((item, itemIndex) =>
-                        itemIndex === index ? { ...item, field: event.target.value } : item,
-                      ),
-                    }))
-                  }
-                >
-                  {CONDITION_FIELDS.map((field) => (
-                    <option key={field} value={field}>
-                      {field}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={condition.op}
-                  onChange={(event) =>
-                    setDraft((current) => ({
-                      ...current,
-                      conditions: current.conditions.map((item, itemIndex) =>
-                        itemIndex === index ? { ...item, op: event.target.value } : item,
-                      ),
-                    }))
-                  }
-                >
-                  {CONDITION_OPERATORS.map((operator) => (
-                    <option key={operator} value={operator}>
-                      {operator}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  value={String(condition.value ?? "")}
-                  onChange={(event) =>
-                    setDraft((current) => ({
-                      ...current,
-                      conditions: current.conditions.map((item, itemIndex) =>
-                        itemIndex === index ? { ...item, value: event.target.value } : item,
-                      ),
-                    }))
-                  }
-                  placeholder="value"
-                />
+                <Field label="Field">
+                  <select
+                    value={condition.field}
+                    onChange={(event) =>
+                      setDraft((current) => ({
+                        ...current,
+                        conditions: current.conditions.map((item, itemIndex) =>
+                          itemIndex === index ? { ...item, field: event.target.value } : item,
+                        ),
+                      }))
+                    }
+                  >
+                    {CONDITION_FIELDS.map((field) => (
+                      <option key={field} value={field}>
+                        {field}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Operator">
+                  <select
+                    value={condition.op}
+                    onChange={(event) =>
+                      setDraft((current) => ({
+                        ...current,
+                        conditions: current.conditions.map((item, itemIndex) =>
+                          itemIndex === index ? { ...item, op: event.target.value } : item,
+                        ),
+                      }))
+                    }
+                  >
+                    {CONDITION_OPERATORS.map((operator) => (
+                      <option key={operator} value={operator}>
+                        {operator}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Value">
+                  <input
+                    value={String(condition.value ?? "")}
+                    onChange={(event) =>
+                      setDraft((current) => ({
+                        ...current,
+                        conditions: current.conditions.map((item, itemIndex) =>
+                          itemIndex === index ? { ...item, value: event.target.value } : item,
+                        ),
+                      }))
+                    }
+                    placeholder="value"
+                  />
+                </Field>
                 <Button
+                  type="button"
                   variant="ghost"
                   size="small"
                   onClick={() =>
@@ -209,8 +232,12 @@ export function AutomationForm({
 
         <div className="automation-builder">
           <div className="topbar-row">
-            <strong>Actions</strong>
+            <div className="inline-stack">
+              <strong>Actions</strong>
+              <span className="muted-text">Define what happens after the rule qualifies a lead or event.</span>
+            </div>
             <Button
+              type="button"
               variant="secondary"
               size="small"
               onClick={() =>
@@ -291,6 +318,7 @@ export function AutomationForm({
 
                 <div className="action-row">
                   <Button
+                    type="button"
                     variant="ghost"
                     size="small"
                     onClick={() =>
@@ -316,6 +344,5 @@ export function AutomationForm({
           </Button>
         </div>
       </form>
-    </Card>
   );
 }

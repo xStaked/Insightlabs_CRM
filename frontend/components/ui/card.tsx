@@ -9,8 +9,8 @@ export function Card({
   return (
     <section className="surface-card">
       {(title || subtitle || actions) && (
-        <div className="topbar-row" style={{ marginBottom: 16 }}>
-          <div className="inline-stack">
+        <div className="card-header">
+          <div className="card-header__body">
             {title ? <h3 className="panel-title">{title}</h3> : null}
             {subtitle ? <p className="panel-subtitle">{subtitle}</p> : null}
           </div>

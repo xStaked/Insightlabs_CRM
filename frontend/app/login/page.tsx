@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { useAuth } from "@/components/auth/auth-provider";
@@ -105,28 +106,58 @@ export default function LoginPage() {
     return <LoadingState title="Loading access layer" copy="Preparing login, session storage and tenant context." />;
   }
 
+  const workspaceCount = companies.data?.length || 0;
+  const selectedWorkspace = companies.data?.find((company) => company.id === tenantId);
+  const workspaceCreated = Boolean(companySuccess);
+
   return (
     <main className="auth-layout">
       <div className="auth-grid">
         <section className="hero-panel surface-card">
-          <div className="eyebrow">Pipeline command center</div>
-          <h1 className="hero-title">Operate leads, billing and automations from one shell.</h1>
+          <div className="eyebrow">Workspace access</div>
+          <h1 className="hero-title">Sign in to the team workspace that runs your pipeline.</h1>
           <p className="hero-copy">
-            This frontend is aligned to the current API surface. Auth, CRM core and billing are connected to real
-            endpoints. Automations and reports are staged with explicit empty states where backend contracts are still
-            pending.
+            Keep sales, conversations, and billing in one place. Choose the workspace you manage, confirm the tenant
+            context, and continue where the team left off.
           </p>
+
+          <div className="card-grid" style={{ marginTop: 24 }}>
+            <article className="surface-card" style={{ minHeight: "unset", padding: 18 }}>
+              <div className="eyebrow" style={{ marginBottom: 10 }}>What you can do here</div>
+              <div className="list-stack">
+                <div>Review leads, inbox activity, and operational queues from one authenticated shell.</div>
+                <div>Switch between tenant workspaces without leaving the product context behind.</div>
+                <div>Provision a new workspace when onboarding a fresh team or business unit.</div>
+              </div>
+            </article>
+
+            <article className="surface-card" style={{ minHeight: "unset", padding: 18 }}>
+              <div className="eyebrow" style={{ marginBottom: 10 }}>Access defaults</div>
+              <div className="list-stack">
+                <div>Seeded admin email: <strong>admin@insightlabscrm.com</strong></div>
+                <div>Seeded password: <strong>admin123</strong></div>
+                <div>{workspaceCount} workspace{workspaceCount === 1 ? "" : "s"} currently available for sign-in.</div>
+              </div>
+            </article>
+          </div>
         </section>
 
         <div className="inline-stack">
-          <Card title="Sign in" subtitle="Use the seeded admin user for the selected tenant.">
+          <Card
+            title="Sign in"
+            subtitle={
+              selectedWorkspace
+                ? `Entering ${selectedWorkspace.name}. Authentication stays scoped to this workspace.`
+                : "Select the workspace first, then continue with your account credentials."
+            }
+          >
             <form className="inline-stack" onSubmit={handleLogin}>
-              <Field label="Tenant">
+              <Field label="Workspace">
                 <select value={tenantId} onChange={(event) => setTenantId(event.target.value)} required>
                   <option value="">Select workspace</option>
                   {(companies.data || []).map((company) => (
                     <option key={company.id} value={company.id}>
-                      {company.name} - {company.id}
+                      {company.name} - {company.slug}
                     </option>
                   ))}
                 </select>
@@ -145,18 +176,28 @@ export default function LoginPage() {
               </Field>
               <div className="action-row">
                 <Button type="submit" disabled={isSubmitting || !tenantId}>
-                  {isSubmitting ? "Signing in..." : "Enter workspace"}
+                  {isSubmitting ? "Signing in..." : "Open workspace"}
                 </Button>
+                <Link href="/" className="muted-text" style={{ alignSelf: "center" }}>
+                  Back to overview
+                </Link>
               </div>
             </form>
           </Card>
 
-          <Card title="Create workspace" subtitle="Provision a tenant first if you do not have one yet.">
+          <Card
+            title="Create workspace"
+            subtitle={
+              workspaceCreated
+                ? "The new workspace is ready. You can sign in with the seeded admin account right away."
+                : "Use this when onboarding a new client, team, or region into its own tenant."
+            }
+          >
             <form className="inline-stack" onSubmit={handleCompanyCreate}>
-              <Field label="Company name">
+              <Field label="Workspace name">
                 <input value={companyName} onChange={(event) => setCompanyName(event.target.value)} required />
               </Field>
-              <Field label="Slug">
+              <Field label="Workspace slug">
                 <input value={companySlug} onChange={(event) => setCompanySlug(event.target.value)} required />
               </Field>
               <div className="form-grid">
@@ -169,7 +210,7 @@ export default function LoginPage() {
               </div>
               <div className="action-row">
                 <Button type="submit" variant="secondary" disabled={isSubmitting}>
-                  {isSubmitting ? "Creating..." : "Create company"}
+                  {isSubmitting ? "Creating..." : "Create workspace"}
                 </Button>
               </div>
             </form>
@@ -185,8 +226,8 @@ export default function LoginPage() {
 
           {!companies.isLoading && !companies.error && (companies.data || []).length === 0 ? (
             <EmptyState
-              title="No companies yet"
-              copy="Create the first workspace to get a tenant id and unlock login."
+              title="No workspaces yet"
+              copy="Create the first workspace to provision tenant access and unlock sign-in."
             />
           ) : null}
 

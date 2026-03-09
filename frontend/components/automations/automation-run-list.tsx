@@ -1,4 +1,3 @@
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/primitives";
 import type { Automation, AutomationRun } from "@/types/api";
 
@@ -25,7 +24,13 @@ export function AutomationRunList({
   const nameById = new Map(automations.map((automation) => [automation.id, automation.name]));
 
   return (
-    <Card title="Execution history" subtitle="Recent automation runs across triggers and leads.">
+    <section className="surface-card">
+      <div className="card-header">
+        <div className="card-header__body">
+          <h3 className="panel-title">Execution history</h3>
+          <p className="panel-subtitle">Review recent runs, retries, and failures without leaving the builder.</p>
+        </div>
+      </div>
       {runs.length > 0 ? (
         <div className="timeline-list">
           {runs.map((run) => (
@@ -39,13 +44,17 @@ export function AutomationRunList({
                 <span>{run.entity_id}</span>
                 <span>{new Date(run.created_at).toLocaleString()}</span>
               </div>
+              <div className="automation-run__meta">
+                <span>{run.attempts} attempt{run.attempts === 1 ? "" : "s"}</span>
+                <span>ID {run.idempotency_key.slice(0, 8)}</span>
+              </div>
               {run.error ? <div className="banner-error">{run.error}</div> : null}
             </article>
           ))}
         </div>
       ) : (
-        <div className="muted-text">No automation runs registered yet for this tenant.</div>
+        <div className="muted-text">Execution history will appear here once the first rule starts running.</div>
       )}
-    </Card>
+    </section>
   );
 }
